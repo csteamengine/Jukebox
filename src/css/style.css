@@ -1,0 +1,13 @@
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: lightblue;
+    -fx-border-radius: 10px;
+}
+
+.column-header, .filler, .column-header-background{
+    -fx-background-color: transparent ;
+}
+
+.label{
+    -fx-text-fill: lightblue;
+}
