@@ -127,7 +127,7 @@ public class Main extends Application{
         primaryStage.getIcons().add(new Image(Main.class.getResourceAsStream("images/jarvis.jpeg")));
     }
 
-    public void displayTracks() throws ReadOnlyFileException, CannotReadException, TagException, InvalidAudioFrameException, IOException {
+    public VBox displayTracks(StackPane layout) throws ReadOnlyFileException, CannotReadException, TagException, InvalidAudioFrameException, IOException {
         String musicDirectory = "C:\\Users\\Public\\Music\\Sample Music";
         String tracks = readMusicFiles(musicDirectory);
 
@@ -147,7 +147,10 @@ public class Main extends Application{
             table.setOpacity(0);
             setFade(table);
             layout.getChildren().add(box);
+            return box;
         }
+
+        return new VBox();
     }
 
     public void displayAlbums(){
