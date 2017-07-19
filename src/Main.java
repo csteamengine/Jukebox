@@ -1,3 +1,4 @@
+import com.google.gson.Gson;
 import javafx.animation.*;
 import javafx.application.*;
 import javafx.geometry.Insets;
@@ -14,8 +15,25 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
+import org.jaudiotagger.audio.mp3.MP3File;
+import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.TagException;
+import org.jaudiotagger.tag.FieldKey;
+
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.nio.Buffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -32,24 +50,29 @@ public class Main extends Application{
         primaryStage.show();
     }
 
-    public ArrayList<String> readMusicFiles(String musicDirectory){
-        ArrayList<String> songNames = new ArrayList<>();
+    public String readMusicFiles(String musicDirectory) throws IOException, TagException, ReadOnlyFileException, CannotReadException, InvalidAudioFrameException {
+        ArrayList<Track> tracks = new ArrayList<>();
         File musicFolder = new File(musicDirectory);
         File[] listOfSongs = musicFolder.listFiles();
         if(listOfSongs != null){
             int counter = 0;
+            Gson gson = new Gson();
             for (int i = 0; i < listOfSongs.length; i++) {
                 if(isSong(listOfSongs[i].getName())){
-                    songNames.add(listOfSongs[i].getName());
+                    MP3File f = new MP3File(listOfSongs[i]);
+                    Tag tag = f.getTag();
+                    Track track = new Track(tag.getFirst(FieldKey.TITLE), tag.getFirst(FieldKey.ARTIST), tag.getFirst(FieldKey.ALBUM), "0", tag.getFirst(FieldKey.YEAR), tag.getFirst(FieldKey.TRACK), tag.getFirst(FieldKey.DISC_NO), tag.getFirst(FieldKey.COMPOSER));
+                    track.setCover_art(tag.getFirstArtwork().getBinaryData());
+                    tracks.add(track);
                     counter++;
                 }
             }
-            return songNames;
+            return gson.toJson(tracks);
         }
-        return new ArrayList<>();
+        return "";
     }
 
-    public TableView constructTable(ArrayList<String> songs){
+    public TableView constructTable(Track[] songs){
         TableView table = new TableView();
         table.setEditable(false);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -74,7 +97,7 @@ public class Main extends Application{
         return (ext.equals("wav") || ext.equals("mp3") || ext.equals("mp4") || ext.equals("mid"));
     }
 
-    public void initUserInterface(Stage primaryStage){
+    public void initUserInterface(Stage primaryStage) throws IOException, ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException {
         primaryStage.setTitle("C.Y.T.U.N.E.S");
 
         Image logo = new Image(Main.class.getResourceAsStream("images/jarvislogo.png"));
@@ -97,10 +120,24 @@ public class Main extends Application{
         Scene scene = new Scene(layout);
         scene.getStylesheets().add(Main.class.getResource("css/style.css").toExternalForm());
 
+
+
+        primaryStage.setScene(scene);
+        primaryStage.setMaximized(true);
+        primaryStage.getIcons().add(new Image(Main.class.getResourceAsStream("images/jarvis.jpeg")));
+    }
+
+    public void displayTracks() throws ReadOnlyFileException, CannotReadException, TagException, InvalidAudioFrameException, IOException {
         String musicDirectory = "C:\\Users\\Public\\Music\\Sample Music";
-        ArrayList<String> songs = readMusicFiles(musicDirectory);
-        if(songs.size() > 0){
-            TableView table = constructTable(songs);
+        String tracks = readMusicFiles(musicDirectory);
+
+//        This code will get the tracks image and display it in the middle of the screen.
+        Gson gson = new Gson();
+        Track[] listOfTracks = gson.fromJson(tracks, Track[].class);
+//        layout.getChildren().add(listOfTracks[0].getTrackArtwork());
+
+        if(listOfTracks.length > 0){
+            TableView table = constructTable(listOfTracks);
             VBox box = new VBox();
             box.setSpacing(5);
             box.setPadding(new Insets(10, 0, 0, 10));
@@ -111,10 +148,14 @@ public class Main extends Application{
             setFade(table);
             layout.getChildren().add(box);
         }
+    }
 
-        primaryStage.setScene(scene);
-        primaryStage.setMaximized(true);
-        primaryStage.getIcons().add(new Image(Main.class.getResourceAsStream("images/jarvis.jpeg")));
+    public void displayAlbums(){
+
+    }
+
+    public void displayArtists(){
+
     }
 
     public void showLogoImage(ImageView image, ImageView blackImage){
