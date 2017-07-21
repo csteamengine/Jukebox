@@ -10,5 +10,6 @@
     <orderEntry type="library" name="org.json:json:20140107" level="project" />
     <orderEntry type="library" name="com.google.code.gson:gson:2.8.0" level="project" />
     <orderEntry type="library" name="org:jaudiotagger:2.0.3" level="project" />
+    <orderEntry type="library" name="bluecove-2.1.1-SNAPSHOT" level="project" />
   </component>
 </module>
